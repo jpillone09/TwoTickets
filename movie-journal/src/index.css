@@ -1,0 +1,54 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Zen+Maru+Gothic:wght@500;700&family=Yomogi&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 15 100% 98%;
+    --foreground: 335 13% 31%;
+    --card: 0 0% 100%;
+    --primary: 338 82% 73%;
+    --primary-foreground: 335 30% 18%;
+    --secondary: 340 100% 95%;
+    --secondary-foreground: 335 13% 31%;
+    --muted: 340 60% 96%;
+    --muted-foreground: 335 10% 44%;
+    --accent: 197 62% 84%;
+    --accent-foreground: 335 13% 25%;
+    --destructive: 0 72% 55%;
+    --border: 335 20% 88%;
+    --ring: 338 62% 59%;
+    --berry: 338 62% 59%;
+    --butter: 49 100% 85%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased font-body;
+    background-image: radial-gradient(hsl(338 82% 90% / 0.5) 1.5px, transparent 1.5px);
+    background-size: 22px 22px;
+  }
+  h1, h2, h3, h4 { @apply font-heading font-bold; }
+  :focus-visible { @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background; }
+}
+
+@layer components {
+  .sticker-card {
+    @apply rounded-sticker border-2 border-foreground/15 bg-card;
+    box-shadow: 4px 4px 0 hsl(338 82% 88%);
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 font-heading font-bold transition;
+  }
+  .btn-primary { @apply btn bg-primary text-primary-foreground hover:bg-berry hover:text-white; }
+  .btn-soft { @apply btn bg-secondary text-secondary-foreground hover:bg-primary/40; }
+  .btn-danger { @apply btn bg-destructive/10 text-destructive hover:bg-destructive/20; }
+  .input {
+    @apply w-full rounded-full border-2 border-border bg-white px-4 py-2.5 placeholder:text-muted-foreground;
+  }
+  .chip { @apply rounded-full bg-secondary px-3 py-1 text-sm font-semibold; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
