@@ -1,115 +1,208 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Search, X } from "lucide-react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Check, ChevronLeft, ChevronRight, Dices, Plus, Search, Star, X } from "lucide-react";
 import MovieCard from "../components/MovieCard";
 import TmdbCredit from "../components/TmdbCredit";
-import { tmdb, type Genre, type MovieSummary, type Page } from "../lib/tmdb";
+import { useMyWatchlist } from "../lib/WatchlistContext";
+import { img, tmdb, yearOf, type Genre, type MovieSummary, type Page } from "../lib/tmdb";
 
-const ROWS = [
-  ["trending", "Trending this week"],
-  ["popular", "Popular"],
-  ["top_rated", "Top rated"],
-  ["upcoming", "Coming soon"],
+const TABS = [
+  ["trending", "Trending"], ["popular", "Popular"], ["top_rated", "Top rated"], ["now_playing", "In cinemas"], ["upcoming", "Coming soon"],
 ] as const;
 
+const MOODS: [string, string, string][] = [
+  ["Cozy night", "🧸", "10751|35"], ["Date night", "💞", "10749|35"], ["Spooky", "👻", "27|53"], ["Make me laugh", "😂", "35"],
+  ["Cry a little", "🥲", "18|10749"], ["Mind-bending", "🌀", "878|9648"], ["Adventure", "🧭", "12|28"], ["Animated", "🎨", "16"],
+];
+
+function Hero({ movies }: { movies: MovieSummary[] }) {
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const wl = useMyWatchlist();
+
+  useEffect(() => {
+    if (paused || movies.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const t = setInterval(() => setI((x) => (x + 1) % movies.length), 7000);
+    return () => clearInterval(t);
+  }, [paused, movies.length]);
+
+  const m = movies[i];
+  if (!m) return <div className="skeleton h-72 rounded-sticker md:h-96" />;
+  const bg = img(m.backdrop_path ?? null, "w1280");
+  const poster = img(m.poster_path, "w342");
+  const on = wl.has(m.id);
+  const go = (d: number) => setI((x) => (x + d + movies.length) % movies.length);
+
+  return (
+    <section aria-label="Featured movies" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}
+      className="relative flex min-h-[18rem] items-end overflow-hidden rounded-sticker border-2 border-foreground/15 bg-[#5A4650] text-white shadow-[4px_4px_0_#F9C6D8] md:min-h-[26rem]">
+      {bg && <img key={m.id} src={bg} alt="" className="page-in absolute inset-0 h-full w-full object-cover" />}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#3b2b33]/95 via-[#3b2b33]/55 to-transparent md:bg-gradient-to-r md:from-[#3b2b33]/95 md:via-[#3b2b33]/60 md:to-transparent" />
+      <div className="relative flex w-full items-end gap-6 p-5 md:p-8">
+        {poster && <img src={poster} alt="" className="hidden w-36 shrink-0 rounded-xl border-4 border-white shadow-xl lg:block" />}
+        <div className="max-w-xl">
+          <p className="mb-2 flex flex-wrap items-center gap-2 text-sm font-semibold">
+            <span className="rounded-full bg-primary px-3 py-1 text-primary-foreground">Trending now</span>
+            {m.release_date && <span>{yearOf(m.release_date)}</span>}
+            {m.vote_average > 0 && <span className="flex items-center gap-1"><Star size={14} className="fill-primary text-primary" />{m.vote_average.toFixed(1)}</span>}
+          </p>
+          <h2 className="font-heading text-3xl font-bold leading-tight md:text-5xl">{m.title}</h2>
+          {m.overview && <p className="mt-2 line-clamp-2 text-white/85 md:line-clamp-3">{m.overview}</p>}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link to={`/app/movie/${m.id}`} className="btn-primary">View details</Link>
+            {wl.ready && (
+              <button className="btn bg-white/90 text-foreground hover:bg-white" onClick={() => wl.toggle(m.id)} disabled={wl.busy === m.id} aria-pressed={on}>
+                {on ? <Check size={18} /> : <Plus size={18} />} {on ? "On my watchlist" : "Watchlist"}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+      {movies.length > 1 && (
+        <>
+          <button aria-label="Previous movie" onClick={() => go(-1)} className="absolute left-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-white/80 p-2 text-foreground md:block"><ChevronLeft /></button>
+          <button aria-label="Next movie" onClick={() => go(1)} className="absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-white/80 p-2 text-foreground md:block"><ChevronRight /></button>
+          <div className="absolute right-4 top-4 flex gap-1.5">
+            {movies.map((x, n) => (
+              <button key={x.id} aria-label={`Show ${x.title}`} aria-current={n === i} onClick={() => setI(n)}
+                className={`h-2.5 rounded-full transition-all ${n === i ? "w-6 bg-primary" : "w-2.5 bg-white/70"}`} />
+            ))}
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
 export default function Discover() {
+  const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [genre, setGenre] = useState("");
   const [year, setYear] = useState("");
+  const [mood, setMood] = useState<number | null>(null);
+  const [tab, setTab] = useState<(typeof TABS)[number][0]>("trending");
   const [genres, setGenres] = useState<Genre[]>([]);
-  const [rows, setRows] = useState<Record<string, MovieSummary[]>>({});
-  const [results, setResults] = useState<MovieSummary[]>([]);
+  const [hero, setHero] = useState<MovieSummary[]>([]);
+  const [items, setItems] = useState<MovieSummary[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const reqId = useRef(0);
+  const [surprising, setSurprising] = useState(false);
 
   const searching = q.trim() !== "" || genre !== "" || year !== "";
+  const yr = /^\d{4}$/.test(year) ? year : undefined;
+
+  const source = useMemo<Record<string, unknown>>(() => {
+    if (q.trim()) return { action: "search", query: q.trim(), year: yr };
+    if (genre || yr) return { action: "discover", genre: genre || undefined, year: yr };
+    if (mood !== null) return { action: "discover", genre: MOODS[mood][2] };
+    return { action: "list", kind: tab };
+  }, [q, genre, yr, mood, tab]);
 
   useEffect(() => {
-    Promise.all([
-      tmdb<Genre[]>({ action: "genres" }),
-      ...ROWS.map(([kind]) => tmdb<Page>({ action: "list", kind })),
-    ])
-      .then(([g, ...lists]) => {
-        setGenres(g as Genre[]);
-        setRows(Object.fromEntries(ROWS.map(([kind], i) => [kind, (lists[i] as Page).results])));
-      })
-      .catch((e) => setError((e as Error).message));
+    tmdb<Genre[]>({ action: "genres" }).then(setGenres).catch(() => {});
+    tmdb<Page>({ action: "list", kind: "trending" })
+      .then((p) => setHero(p.results.filter((m) => m.backdrop_path || m.poster_path).slice(0, 6)))
+      .catch(() => {});
   }, []);
 
-  const run = useCallback(async (p: number, append: boolean) => {
-    const id = ++reqId.current;
+  const load = useCallback(async (p: number, append: boolean) => {
     setLoading(true);
     setError("");
     try {
-      const yr = /^\d{4}$/.test(year) ? year : undefined;
-      const res = await tmdb<Page>(
-        q.trim()
-          ? { action: "search", query: q.trim(), year: yr, page: p }
-          : { action: "discover", genre: genre || undefined, year: yr, page: p },
-      );
-      if (id !== reqId.current) return; // a newer request replaced this one
-      setResults((prev) => (append ? [...prev, ...res.results] : res.results));
+      const res = await tmdb<Page>({ ...source, page: p });
+      setItems((prev) => (append ? [...prev, ...res.results.filter((m) => !prev.some((x) => x.id === m.id))] : res.results));
       setPage(res.page);
       setTotalPages(res.total_pages);
     } catch (e) {
-      if (id === reqId.current) setError((e as Error).message);
+      setError((e as Error).message);
     }
-    if (id === reqId.current) setLoading(false);
-  }, [q, genre, year]);
+    setLoading(false);
+  }, [source]);
 
   useEffect(() => {
-    if (!searching) return;
-    const t = setTimeout(() => run(1, false), 400);
-    return () => clearTimeout(t);
-  }, [searching, run]);
+    let live = true;
+    const t = setTimeout(() => { if (live) load(1, false); }, q ? 400 : 0);
+    return () => { live = false; clearTimeout(t); };
+  }, [load, q]);
 
-  const clear = () => { setQ(""); setGenre(""); setYear(""); setResults([]); };
+  async function surprise() {
+    setSurprising(true);
+    try {
+      const res = await tmdb<Page>({ action: "list", kind: "top_rated", page: 1 + Math.floor(Math.random() * 15) });
+      const pick = res.results[Math.floor(Math.random() * res.results.length)];
+      if (pick) navigate(`/app/movie/${pick.id}`);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+    setSurprising(false);
+  }
+
+  const clear = () => { setQ(""); setGenre(""); setYear(""); setMood(null); };
+  const heading = searching ? "Search results" : mood !== null ? `${MOODS[mood][1]} ${MOODS[mood][0]}` : TABS.find((t) => t[0] === tab)![1];
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <h1 className="text-3xl">Discover</h1>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        <div className="relative min-w-[14rem] flex-1">
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="mr-auto text-3xl">Discover</h1>
+        <div className="relative min-w-[14rem] flex-1 md:max-w-md">
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input className="input pl-11" placeholder="Search movies…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <select className="input w-auto" value={genre} onChange={(e) => setGenre(e.target.value)} disabled={q.trim() !== ""}
-          aria-label="Genre">
-          <option value="">All genres</option>
-          {genres.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+        <select className="input w-auto" value={genre} onChange={(e) => setGenre(e.target.value)} disabled={q.trim() !== ""} aria-label="Genre">
+          <option value="">All genres</option>{genres.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
         </select>
-        <input className="input w-28" inputMode="numeric" maxLength={4} placeholder="Year" value={year}
+        <input className="input w-24" inputMode="numeric" maxLength={4} placeholder="Year" value={year}
           onChange={(e) => setYear(e.target.value.replace(/\D/g, ""))} aria-label="Release year" />
-        {searching && <button className="btn-soft" onClick={clear}><X size={16} /> Clear</button>}
+        <button className="btn-primary" onClick={surprise} disabled={surprising}><Dices size={18} /> {surprising ? "Rolling…" : "Surprise me"}</button>
       </div>
 
-      {error && <p role="alert" className="mt-4 font-semibold text-destructive">Couldn't load movies: {error}</p>}
+      {!searching && <Hero movies={hero} />}
 
-      {searching ? (
-        <>
-          <div className="mt-6 flex flex-wrap gap-5">
-            {results.map((m) => <MovieCard key={m.id} movie={m} />)}
+      {!searching && (
+        <section aria-label="Pick a mood">
+          <h2 className="mb-2 text-lg">What are you in the mood for?</h2>
+          <div className="flex flex-wrap gap-2">
+            {MOODS.map(([label, emoji], n) => (
+              <button key={label} aria-pressed={mood === n} onClick={() => setMood(mood === n ? null : n)}
+                className={`rounded-full border-2 px-4 py-2 font-heading font-bold transition ${
+                  mood === n ? "border-berry bg-primary text-primary-foreground" : "border-border bg-card hover:-translate-y-0.5 hover:border-primary"}`}>
+                <span aria-hidden>{emoji}</span> {label}
+              </button>
+            ))}
           </div>
-          {!loading && results.length === 0 && !error && <p className="mt-6 text-muted-foreground">No movies found.</p>}
-          {loading && <p className="mt-6 text-muted-foreground">Loading…</p>}
-          {!loading && page < totalPages && (
-            <button className="btn-soft mt-6" onClick={() => run(page + 1, true)}>Show more</button>
-          )}
-        </>
-      ) : (
-        ROWS.map(([kind, title]) => (
-          <section key={kind} className="mt-8">
-            <h2 className="mb-3 text-xl">{title}</h2>
-            <div className="flex gap-4 overflow-x-auto pb-3">
-              {(rows[kind] ?? []).map((m) => <MovieCard key={m.id} movie={m} />)}
-              {!rows[kind] && !error && <p className="text-muted-foreground">Loading…</p>}
-            </div>
-          </section>
-        ))
+        </section>
       )}
+
+      <section>
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <h2 className="mr-2 text-2xl">{heading}</h2>
+          {!searching && mood === null && (
+            <div role="tablist" className="flex flex-wrap gap-1.5">
+              {TABS.map(([k, label]) => (
+                <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
+                  className={tab === k ? "btn-primary !px-4 !py-1.5" : "btn-soft !px-4 !py-1.5"}>{label}</button>
+              ))}
+            </div>
+          )}
+          {(searching || mood !== null) && <button className="btn-soft !py-1.5" onClick={clear}><X size={16} /> Clear</button>}
+        </div>
+
+        {error && <p role="alert" className="mb-3 font-semibold text-destructive">Couldn't load movies: {error}</p>}
+
+        <div className="poster-grid">
+          {items.map((m) => <MovieCard key={m.id} movie={m} fluid />)}
+          {loading && Array.from({ length: items.length ? 6 : 18 }).map((_, n) => (
+            <div key={n}><div className="skeleton aspect-[2/3] rounded-xl" /><div className="skeleton mt-2 h-4 w-3/4 rounded" /></div>
+          ))}
+        </div>
+        {!loading && items.length === 0 && !error && <p className="text-muted-foreground">No movies found. Try different words or filters.</p>}
+        {!loading && page < totalPages && (
+          <div className="mt-6 text-center"><button className="btn-soft" onClick={() => load(page + 1, true)}>Show more</button></div>
+        )}
+      </section>
       <TmdbCredit />
     </div>
   );

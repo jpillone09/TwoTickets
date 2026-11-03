@@ -3,6 +3,7 @@ import { supabase } from "./supabase";
 export type Genre = { id: number; name: string };
 export type MovieSummary = {
   id: number; title: string; poster_path: string | null; release_date: string | null; vote_average: number;
+  backdrop_path?: string | null; overview?: string;
 };
 export type Page = { results: MovieSummary[]; page: number; total_pages: number };
 export type CastMember = { id: number; name: string; character: string; profile_path: string | null };

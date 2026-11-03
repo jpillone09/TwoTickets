@@ -3,12 +3,12 @@ import { Check, Clapperboard, Plus, Star } from "lucide-react";
 import { img, yearOf, type MovieSummary } from "../lib/tmdb";
 import { useMyWatchlist } from "../lib/WatchlistContext";
 
-export default function MovieCard({ movie }: { movie: MovieSummary }) {
+export default function MovieCard({ movie, fluid = false }: { movie: MovieSummary; fluid?: boolean }) {
   const src = img(movie.poster_path);
   const wl = useMyWatchlist();
   const on = wl.has(movie.id);
   return (
-    <div className="group relative w-36 shrink-0 md:w-40">
+    <div className={`group relative ${fluid ? "w-full" : "w-36 shrink-0 md:w-40"}`}>
       <Link to={`/app/movie/${movie.id}`} className="block">
         <div className="aspect-[2/3] overflow-hidden rounded-xl border-4 border-white bg-secondary shadow-md transition group-hover:-translate-y-1">
           {src ? (

@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../auth/AuthProvider";
 
 export default function Onboarding() {
-  const { profile, refreshProfile } = useAuth();
+  const { profile, partner, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [code, setCode] = useState("");
   const [inviteCode, setInviteCode] = useState("");
@@ -32,6 +32,8 @@ export default function Onboarding() {
   async function join() {
     setBusy(true);
     setError("");
+    // if you were alone in an empty couple (e.g. you tapped "Get an invite code"), step out of it first
+    if (profile?.couple_id && !partner) await supabase.rpc("leave_couple");
     const { data, error } = await supabase.rpc("join_couple", { invite_code: code });
     if (error) setError(error.message);
     else if (!data) setError("That invite code is invalid or expired.");

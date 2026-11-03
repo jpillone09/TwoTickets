@@ -16,7 +16,7 @@ export default function Reviews() {
   const load = useCallback(async () => {
     const { data } = await supabase.from("reviews")
       .select("*, movie:movies(id,title,poster_path,release_date), author:profiles(id,display_name,username)")
-      .not("body", "is", null).order("created_at", { ascending: false }).limit(30);
+      .order("created_at", { ascending: false }).limit(50);
     setRows((data ?? []) as unknown as ReviewRow[]);
     setLoading(false);
   }, []);
@@ -27,7 +27,7 @@ export default function Reviews() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-3xl">Reviews</h1>
+      <h1 className="text-3xl">Ratings &amp; reviews</h1>
       <div className="mt-4 flex gap-2">
         {tabs.map(([t, label]) => (
           <button key={t} onClick={() => setTab(t)} className={tab === t ? "btn-primary" : "btn-soft"}>{label}</button>
@@ -39,7 +39,7 @@ export default function Reviews() {
           <p className="text-muted-foreground">
             {tab === "partner" && !profile?.couple_id
               ? "Pair up with your partner to see their reviews here."
-              : "No written reviews yet. Open a movie from Discover and log one."}
+              : "Nothing here yet. Open a movie from Discover and rate it."}
           </p>
         )}
         {shown.map((r) => <ReviewCard key={r.id} review={r} showMovie onChanged={load} />)}

@@ -37,8 +37,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={!loading && session ? <Navigate to="/app" replace /> : <Landing />} />
-      <Route path="/login" element={<AuthPage mode="login" />} />
-      <Route path="/signup" element={<AuthPage mode="signup" />} />
+      <Route path="/login" element={<AuthPage key="login" mode="login" />} />
+      <Route path="/signup" element={<AuthPage key="signup" mode="signup" />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
