@@ -22,6 +22,7 @@ export default function MovieDetail() {
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [views, setViews] = useState(0);
   const [showForm, setShowForm] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     setMovie(null); setSimilar([]); setError(""); setShowForm(false);
@@ -32,9 +33,10 @@ export default function MovieDetail() {
   const loadMine = useCallback(async () => {
     if (!id) return;
     const [r, d] = await Promise.all([
-      supabase.from("reviews").select("*, author:profiles(id,display_name,username)").eq("movie_id", Number(id)).order("created_at"),
+      supabase.from("reviews").select("*, author:profiles!user_id(id,display_name,username)").eq("movie_id", Number(id)).order("created_at"),
       supabase.from("diary_entries").select("id", { count: "exact", head: true }).eq("movie_id", Number(id)).eq("user_id", uid),
     ]);
+    if (r.error) setLoadError(r.error.message);
     setReviews((r.data ?? []) as unknown as ReviewRow[]);
     setViews(d.count ?? 0);
   }, [id, uid]);
@@ -92,6 +94,7 @@ export default function MovieDetail() {
 
       <section>
         <h2 className="mb-3 text-xl">Ratings &amp; reviews</h2>
+        {loadError && <p role="alert" className="mb-3 font-semibold text-destructive">Couldn't load reviews: {loadError}</p>}
         <div className={`grid gap-4 ${profile?.couple_id ? "md:grid-cols-2" : ""}`}>
           <div>
             <p className="mb-2 text-sm font-bold uppercase tracking-wide text-berry">You</p>

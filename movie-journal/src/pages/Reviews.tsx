@@ -12,11 +12,13 @@ export default function Reviews() {
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [tab, setTab] = useState<Tab>("all");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from("reviews")
-      .select("*, movie:movies(id,title,poster_path,release_date), author:profiles(id,display_name,username)")
+    const { data, error } = await supabase.from("reviews")
+      .select("*, movie:movies(id,title,poster_path,release_date), author:profiles!user_id(id,display_name,username)")
       .order("created_at", { ascending: false }).limit(50);
+    if (error) setError(error.message);
     setRows((data ?? []) as unknown as ReviewRow[]);
     setLoading(false);
   }, []);
@@ -33,6 +35,7 @@ export default function Reviews() {
           <button key={t} onClick={() => setTab(t)} className={tab === t ? "btn-primary" : "btn-soft"}>{label}</button>
         ))}
       </div>
+      {error && <p role="alert" className="mt-4 font-semibold text-destructive">Couldn't load reviews: {error}</p>}
       <div className="mt-5 space-y-4">
         {loading && <p className="text-muted-foreground">Loading…</p>}
         {!loading && shown.length === 0 && (

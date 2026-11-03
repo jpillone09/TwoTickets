@@ -6,7 +6,7 @@ import ExportCard from "../components/ExportCard";
 import DeleteAccountCard from "../components/DeleteAccountCard";
 
 export default function Settings() {
-  const { profile, partner, session, refreshProfile, signOut } = useAuth();
+  const { profile, session, refreshProfile, signOut } = useAuth();
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState("");
 
@@ -41,7 +41,7 @@ export default function Settings() {
         <h2 className="text-lg">Your couple</h2>
         {profile?.couple_id ? (
           <>
-            <p className="text-muted-foreground">{partner ? <>You're paired with <b>{partner.display_name ?? partner.username}</b>.</> : "Waiting for your partner to join. Share an invite code with them."}</p>
+            <p className="text-muted-foreground">You're paired. Need to invite your partner again?</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button className="btn-primary" onClick={newInvite}>New invite code</button>
               <button className="btn-danger" onClick={leave}>Leave couple</button>

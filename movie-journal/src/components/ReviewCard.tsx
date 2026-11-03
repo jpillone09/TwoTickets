@@ -33,7 +33,7 @@ export default function ReviewCard({ review, showMovie = false, onChanged }: {
 
   const loadComments = useCallback(async () => {
     const { data } = await supabase.from("review_comments")
-      .select("id,user_id,parent_id,body,created_at,author:profiles(display_name)")
+      .select("id,user_id,parent_id,body,created_at,author:profiles!user_id(display_name)")
       .eq("review_id", review.id).order("created_at");
     setComments((data ?? []) as unknown as Comment[]);
   }, [review.id]);

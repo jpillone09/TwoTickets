@@ -63,14 +63,14 @@ export default function Profile() {
   const load = useCallback(async () => {
     setProf(undefined);
     const { data: p } = await supabase.from("profiles")
-      .select("id,username,display_name,bio,avatar_url,favorite_genre,favorite_movie_id,favorite_movie:movies(id,title,poster_path)")
+      .select("id,username,display_name,bio,avatar_url,favorite_genre,favorite_movie_id,favorite_movie:movies!favorite_movie_id(id,title,poster_path)")
       .eq("username", username ?? "").maybeSingle();
     if (!p) return setProf(null);
     const [d, r, f, l, w] = await Promise.all([
       supabase.from("diary_entries")
         .select("id,watched_on,rating,is_rewatch,watched_together,created_at,movie:movies(id,title,poster_path,release_date,genres,director)")
         .eq("user_id", p.id).order("watched_on", { ascending: false }).limit(1000),
-      supabase.from("reviews").select("*, movie:movies(id,title,poster_path,release_date), author:profiles(id,display_name,username)")
+      supabase.from("reviews").select("*, movie:movies(id,title,poster_path,release_date), author:profiles!user_id(id,display_name,username)")
         .eq("user_id", p.id).order("created_at", { ascending: false }).limit(100),
       supabase.from("favorite_movies").select("position,movie:movies(id,title,poster_path)").eq("user_id", p.id).order("position"),
       supabase.from("movie_lists").select("id,name,description,items:movie_list_items(movie_id,movie:movies(id,title,poster_path))").eq("user_id", p.id),

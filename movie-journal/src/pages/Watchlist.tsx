@@ -48,7 +48,7 @@ export default function Watchlist({ kind }: { kind: "personal" | "shared" }) {
     const { data: wl } = await (shared ? base.eq("couple_id", profile.couple_id!) : base.eq("owner_id", uid)).maybeSingle();
     if (!wl) return setLoading(false);
     const { data } = await supabase.from("watchlist_movies")
-      .select("id,movie_id,note,priority,status,watched_together,added_at,added_by,movie:movies(id,title,poster_path,release_date,tmdb_rating,genres),adder:profiles(display_name)")
+      .select("id,movie_id,note,priority,status,watched_together,added_at,added_by,movie:movies(id,title,poster_path,release_date,tmdb_rating,genres),adder:profiles!added_by(display_name)")
       .eq("watchlist_id", wl.id);
     const list = (data ?? []) as unknown as Item[];
     setItems(list);
