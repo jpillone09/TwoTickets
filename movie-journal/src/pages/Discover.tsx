@@ -10,10 +10,28 @@ const TABS = [
   ["trending", "Trending"], ["popular", "Popular"], ["top_rated", "Top rated"], ["now_playing", "In cinemas"], ["upcoming", "Coming soon"],
 ] as const;
 
-const MOODS: [string, string, string][] = [
-  ["Cozy night", "🧸", "10751|35"], ["Date night", "💞", "10749|35"], ["Spooky", "👻", "27|53"], ["Make me laugh", "😂", "35"],
-  ["Cry a little", "🥲", "18|10749"], ["Mind-bending", "🌀", "878|9648"], ["Adventure", "🧭", "12|28"], ["Animated", "🎨", "16"],
+type Mood = { label: string; emoji: string; blurb: string; genres: string; without?: string };
+// TMDB has genres, not moods, so each mood combines genres (comma = both, pipe = either) and filters out the ones that don't fit.
+const MOODS: Mood[] = [
+  { label: "Cozy night", emoji: "🧸", blurb: "Light, feel-good comedies and family films. Nothing dark.", genres: "35|10751", without: "27,53,80,10752,9648,99" },
+  { label: "Date night", emoji: "💞", blurb: "Romance, with the scary and violent stuff filtered out.", genres: "10749", without: "27,53,80,10752,99" },
+  { label: "Spooky", emoji: "👻", blurb: "Proper horror. No comedies or kids' films.", genres: "27", without: "35,10751,16" },
+  { label: "Make me laugh", emoji: "😂", blurb: "Pure comedies. Dark and serious genres are filtered out.", genres: "35", without: "27,53,80,10752,18,99" },
+  { label: "Cry a little", emoji: "🥲", blurb: "Romantic dramas and tearjerkers.", genres: "18,10749", without: "35,27,28" },
+  { label: "Mind-bending", emoji: "🌀", blurb: "Sci-fi mysteries that mess with your head.", genres: "878,9648" },
+  { label: "Adventure", emoji: "🧭", blurb: "Quests, journeys and big escapes.", genres: "12", without: "27,99,10751,16" },
+  { label: "Animated", emoji: "🎨", blurb: "Animation for every age.", genres: "16", without: "10770" },
 ];
+
+const SORTS = { popular: "Most popular", rated: "Best rated", newest: "Newest" } as const;
+type SortKey = keyof typeof SORTS;
+const SORT_BY: Record<SortKey, string> = { popular: "popularity.desc", rated: "vote_average.desc", newest: "primary_release_date.desc" };
+/** Filters that keep obscure or poorly-rated films out of the results. */
+const quality = (s: SortKey, mood: boolean) => ({
+  sort: SORT_BY[s],
+  min_votes: s === "rated" ? 1500 : s === "newest" ? 150 : mood ? 300 : 50,
+  min_rating: s === "rated" ? 7 : mood ? 6.2 : undefined,
+});
 
 function Hero({ movies }: { movies: MovieSummary[] }) {
   const [i, setI] = useState(0);
@@ -81,6 +99,7 @@ export default function Discover() {
   const [genre, setGenre] = useState("");
   const [year, setYear] = useState("");
   const [mood, setMood] = useState<number | null>(null);
+  const [sort, setSort] = useState<SortKey>("popular");
   const [tab, setTab] = useState<(typeof TABS)[number][0]>("trending");
   const [genres, setGenres] = useState<Genre[]>([]);
   const [hero, setHero] = useState<MovieSummary[]>([]);
@@ -96,10 +115,10 @@ export default function Discover() {
 
   const source = useMemo<Record<string, unknown>>(() => {
     if (q.trim()) return { action: "search", query: q.trim(), year: yr };
-    if (genre || yr) return { action: "discover", genre: genre || undefined, year: yr };
-    if (mood !== null) return { action: "discover", genre: MOODS[mood][2] };
+    if (genre || yr) return { action: "discover", genre: genre || undefined, year: yr, ...quality(sort, false) };
+    if (mood !== null) return { action: "discover", genre: MOODS[mood].genres, without_genres: MOODS[mood].without, ...quality(sort, true) };
     return { action: "list", kind: tab };
-  }, [q, genre, yr, mood, tab]);
+  }, [q, genre, yr, mood, tab, sort]);
 
   useEffect(() => {
     tmdb<Genre[]>({ action: "genres" }).then(setGenres).catch(() => {});
@@ -141,7 +160,7 @@ export default function Discover() {
   }
 
   const clear = () => { setQ(""); setGenre(""); setYear(""); setMood(null); };
-  const heading = searching ? "Search results" : mood !== null ? `${MOODS[mood][1]} ${MOODS[mood][0]}` : TABS.find((t) => t[0] === tab)![1];
+  const heading = searching ? "Search results" : mood !== null ? `${MOODS[mood].emoji} ${MOODS[mood].label}` : TABS.find((t) => t[0] === tab)![1];
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -165,7 +184,7 @@ export default function Discover() {
         <section aria-label="Pick a mood">
           <h2 className="mb-2 text-lg">What are you in the mood for?</h2>
           <div className="flex flex-wrap gap-2">
-            {MOODS.map(([label, emoji], n) => (
+            {MOODS.map(({ label, emoji }, n) => (
               <button key={label} aria-pressed={mood === n} onClick={() => setMood(mood === n ? null : n)}
                 className={`rounded-full border-2 px-4 py-2 font-heading font-bold transition ${
                   mood === n ? "border-berry bg-primary text-primary-foreground" : "border-border bg-card hover:-translate-y-0.5 hover:border-primary"}`}>
@@ -188,7 +207,13 @@ export default function Discover() {
             </div>
           )}
           {(searching || mood !== null) && <button className="btn-soft !py-1.5" onClick={clear}><X size={16} /> Clear</button>}
+          {source.action === "discover" && (
+            <select className="input ml-auto w-auto !py-1.5" value={sort} onChange={(e) => setSort(e.target.value as SortKey)} aria-label="Sort by">
+              {(Object.keys(SORTS) as SortKey[]).map((k) => <option key={k} value={k}>{SORTS[k]}</option>)}
+            </select>
+          )}
         </div>
+        {mood !== null && !searching && <p className="-mt-2 mb-4 text-muted-foreground">{MOODS[mood].blurb}</p>}
 
         {error && <p role="alert" className="mb-3 font-semibold text-destructive">Couldn't load movies: {error}</p>}
 
