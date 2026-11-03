@@ -96,7 +96,9 @@ export default function ReviewCard({ review, showMovie = false, onChanged }: {
           {showMovie && <Link to={`/app/movie/${review.movie_id}`} className="font-heading text-lg font-bold">{review.movie?.title}</Link>}
           <Stars value={review.rating} />
           <span className="text-sm text-muted-foreground">
-            {own ? "You" : review.author?.display_name ?? "Partner"} · {fmtDate(review.created_at)}
+            {own ? "You" : review.author?.username
+              ? <Link to={`/app/u/${review.author.username}`} className="font-semibold text-berry">{review.author.display_name ?? "Partner"}</Link>
+              : "Partner"} · {fmtDate(review.created_at)}
           </span>
         </div>
 

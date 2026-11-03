@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../auth/AuthProvider";
+import ExportCard from "../components/ExportCard";
+import DeleteAccountCard from "../components/DeleteAccountCard";
 
 export default function Settings() {
   const { profile, session, refreshProfile, signOut } = useAuth();
@@ -54,6 +56,9 @@ export default function Settings() {
         )}
         {msg && <p role="alert" className="mt-3 font-semibold text-destructive">{msg}</p>}
       </div>
+
+      <ExportCard />
+      <DeleteAccountCard />
     </div>
   );
 }

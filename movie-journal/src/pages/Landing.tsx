@@ -37,7 +37,11 @@ export default function Landing() {
       </section>
 
       <footer className="mt-16 text-center text-sm text-muted-foreground">
-        This product uses the TMDB API but is not endorsed or certified by TMDB.
+        <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+        <p className="mt-2 space-x-4">
+          <Link to="/privacy" className="underline">Privacy</Link>
+          <Link to="/terms" className="underline">Terms</Link>
+        </p>
       </footer>
     </div>
   );

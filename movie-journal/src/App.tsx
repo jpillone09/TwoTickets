@@ -7,6 +7,16 @@ import Landing from "./pages/Landing";
 import AuthPage from "./pages/AuthPage";
 import Onboarding from "./pages/Onboarding";
 import Home from "./pages/Home";
+import ResetPassword from "./pages/ResetPassword";
+import { Privacy, Terms } from "./pages/Legal";
+import Stats from "./pages/Stats";
+import CoupleStats from "./pages/CoupleStats";
+import Recap from "./pages/Recap";
+import Profile from "./pages/Profile";
+import Notifications from "./pages/Notifications";
+import ForYou from "./pages/ForYou";
+import Watchlist from "./pages/Watchlist";
+import Lists from "./pages/Lists";
 import Diary from "./pages/Diary";
 import Reviews from "./pages/Reviews";
 import Discover from "./pages/Discover";
@@ -20,12 +30,6 @@ function RequireAuth({ children }: { children: ReactNode }) {
 }
 
 const stubs: [string, string, string][] = [
-  ["watchlist", "My watchlist", "Your own list of movies to watch. Coming in Phase 5."],
-  ["shared", "Our watchlist", "Movies you and your partner want to watch together. Coming in Phase 5."],
-  ["for-you", "For you", "Recommendations, including ones from your partner. Coming in Phase 6."],
-  ["stats", "Your stats", "Charts built from your diary. Coming in Phase 7."],
-  ["stats/couple", "Our stats", "Movies watched together and rating comparisons. Coming in Phase 7."],
-  ["u/:username", "Profile", "Profiles are coming in Phase 6."],
 ];
 
 export default function App() {
@@ -35,9 +39,21 @@ export default function App() {
       <Route path="/" element={!loading && session ? <Navigate to="/app" replace /> : <Landing />} />
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/signup" element={<AuthPage mode="signup" />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
       <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
       <Route path="/app" element={<RequireAuth><AppLayout /></RequireAuth>}>
         <Route index element={<Home />} />
+        <Route path="stats" element={<Stats />} />
+        <Route path="stats/couple" element={<CoupleStats />} />
+        <Route path="stats/recap" element={<Recap />} />
+        <Route path="u/:username" element={<Profile />} />
+        <Route path="notifications" element={<Notifications />} />
+        <Route path="for-you" element={<ForYou />} />
+        <Route path="watchlist" element={<Watchlist kind="personal" />} />
+        <Route path="shared" element={<Watchlist kind="shared" />} />
+        <Route path="lists" element={<Lists />} />
         <Route path="diary" element={<Diary />} />
         <Route path="reviews" element={<Reviews />} />
         <Route path="discover" element={<Discover />} />

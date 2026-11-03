@@ -4,6 +4,8 @@ import { ArrowLeft, Clock, Star, UserRound } from "lucide-react";
 import MovieCard from "../components/MovieCard";
 import TmdbCredit from "../components/TmdbCredit";
 import LogForm from "../components/LogForm";
+import SaveButtons from "../components/SaveButtons";
+import MovieActions from "../components/MovieActions";
 import ReviewCard from "../components/ReviewCard";
 import { useAuth } from "../auth/AuthProvider";
 import { supabase } from "../lib/supabase";
@@ -82,6 +84,8 @@ export default function MovieDetail() {
               </button>
               {views > 0 && <span className="text-sm text-muted-foreground">You've logged this {views} time{views > 1 ? "s" : ""}.</span>}
             </div>
+            <SaveButtons movieId={movie.id} paired={!!profile?.couple_id} />
+            <MovieActions movie={{ id: movie.id, title: movie.title }} paired={!!profile?.couple_id} />
             {showForm && (
               <LogForm movie={{ id: movie.id, title: movie.title }} existing={myReview} priorViews={views}
                 paired={!!profile?.couple_id} onSaved={() => { setShowForm(false); loadMine(); }} />

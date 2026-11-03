@@ -32,8 +32,9 @@ export default function Onboarding() {
   async function join() {
     setBusy(true);
     setError("");
-    const { error } = await supabase.rpc("join_couple", { invite_code: code });
+    const { data, error } = await supabase.rpc("join_couple", { invite_code: code });
     if (error) setError(error.message);
+    else if (!data) setError("That invite code is invalid or expired.");
     else {
       await refreshProfile();
       navigate("/app");
