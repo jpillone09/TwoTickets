@@ -82,7 +82,7 @@ I planned this one phase at a time:
 8. Prepared it for launch: password reset, data export, account deletion, legal pages, security headers and a deployment checklist
 9. Redesigned Discover and the Home page, and fixed bugs I found while testing
 
-**I built this with an AI coding assistant (Claude).** I defined the idea and requirements, set up Supabase and TMDB, ran the app locally, tested it with multiple accounts, reported the bugs I found, and reviewed each fix. The assistant wrote most of the code.
+**I built this with an AI coding assistant (Claude).** I defined the idea and requirements, set up Supabase and TMDB, ran the app locally, tested it with multiple accounts, reported the bugs I found, and reviewed each fix.
 
 ## What I learned
 
