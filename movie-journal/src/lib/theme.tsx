@@ -100,7 +100,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => mq.removeEventListener("change", on);
   }, [saved]);
 
-  const resolved = isDark(saved.mode) ? "dark" : "light";
+  const resolved: "light" | "dark" = isDark(saved.mode) ? "dark" : "light";
   const setMode = useCallback((mode: Mode) => setSaved((s) => ({ ...s, mode })), []);
   const setHue = useCallback((hue: number) => setSaved((s) => ({ ...s, hue })), []);
   const toggle = useCallback(() => setSaved((s) => ({ ...s, mode: isDark(s.mode) ? "light" : "dark" })), []);
