@@ -68,7 +68,7 @@ export default function Notifications() {
           <button key={n.id} onClick={() => open(n)}
             className={`sticker-card flex w-full items-center gap-3 p-3 text-left ${n.read_at ? "opacity-70" : "!bg-secondary"}`}>
             {n.movie?.poster_path
-              ? <img src={img(n.movie.poster_path, "w185")!} alt="" className="w-10 rounded-md border-2 border-white" />
+              ? <img src={img(n.movie.poster_path, "w185")!} alt="" className="w-10 rounded-md border-2 border-card" />
               : <Bell className="m-2 text-primary" />}
             <span className="flex-1"><b>{n.actor?.display_name ?? "Your partner"}</b> {(TEXT[n.type] ?? (() => "did something"))(n.movie?.title ?? "")}
               <span className="block text-xs text-muted-foreground">{timeAgo(n.created_at)}</span></span>

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../auth/AuthProvider";
 import { APP_NAME } from "../lib/brand";
@@ -19,8 +19,13 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
   const [captcha, setCaptcha] = useState<string | null>(null);
   const [captchaKey, setCaptchaKey] = useState(0);
   const isSignup = mode === "signup";
+  const [params] = useSearchParams();
+  const rawNext = params.get("next");
+  // only allow paths inside this site (stops a crafted link sending you elsewhere)
+  const next = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/app";
+  const qs = rawNext ? `?next=${encodeURIComponent(next)}` : "";
 
-  if (!loading && session) return <Navigate to="/app" replace />;
+  if (!loading && session) return <Navigate to={next} replace />;
 
   // CAPTCHA tokens work once, so get a fresh one after every attempt
   const freshCaptcha = () => { setCaptcha(null); setCaptchaKey((k) => k + 1); };
@@ -42,7 +47,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken } });
       if (error) setError(error.message);
-      else navigate("/app");
+      else navigate(next);
     }
     freshCaptcha();
     setBusy(false);
@@ -96,9 +101,10 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
         {!isSignup && <button type="button" onClick={forgot} className="block w-full text-center text-sm font-semibold text-berry underline" disabled={busy}>Forgot password?</button>}
         <p className="text-center text-sm text-muted-foreground">
           {isSignup ? "Already have an account? " : "New here? "}
-          <Link className="font-bold text-berry underline" to={isSignup ? "/login" : "/signup"}>{isSignup ? "Log in" : "Sign up"}</Link>
+          <Link className="font-bold text-berry underline" to={(isSignup ? "/login" : "/signup") + qs}>{isSignup ? "Log in" : "Sign up"}</Link>
         </p>
       </form>
+      <p className="mt-4 text-center text-sm"><Link to="/app/discover" className="font-semibold text-berry underline">Keep browsing without an account</Link></p>
     </div>
   );
 }

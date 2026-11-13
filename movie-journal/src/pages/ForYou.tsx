@@ -105,7 +105,7 @@ export default function ForYou() {
           {incoming.map((r) => (
             <div key={r.id} className="sticker-card flex gap-4 p-3">
               <Link to={`/app/movie/${r.movie_id}`} className="w-16 shrink-0">
-                {r.movie.poster_path && <img src={img(r.movie.poster_path, "w185")!} alt="" className="rounded-lg border-2 border-white shadow" />}
+                {r.movie.poster_path && <img src={img(r.movie.poster_path, "w185")!} alt="" className="rounded-lg border-2 border-card shadow" />}
               </Link>
               <div className="flex-1 space-y-2">
                 <p><b>{r.sender?.display_name ?? "Your partner"}</b> recommends <Link to={`/app/movie/${r.movie_id}`} className="font-bold text-berry">{r.movie.title}</Link>

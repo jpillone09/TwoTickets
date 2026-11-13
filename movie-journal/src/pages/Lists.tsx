@@ -80,7 +80,7 @@ export default function Lists() {
                 <div key={it.movie_id} className="relative w-24">
                   <Link to={`/app/movie/${it.movie_id}`} title={it.movie.title}>
                     {it.movie.poster_path
-                      ? <img src={img(it.movie.poster_path, "w185")!} alt={it.movie.title} className="aspect-[2/3] rounded-lg border-2 border-white object-cover shadow" />
+                      ? <img src={img(it.movie.poster_path, "w185")!} alt={it.movie.title} className="aspect-[2/3] rounded-lg border-2 border-card object-cover shadow" />
                       : <div className="flex aspect-[2/3] items-center justify-center rounded-lg bg-secondary p-1 text-center text-xs">{it.movie.title}</div>}
                   </Link>
                   <button aria-label={`Remove ${it.movie.title}`} onClick={() => removeItem(l.id, it.movie_id)}

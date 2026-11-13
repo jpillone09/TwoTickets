@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Heart, ListVideo, Star, Ticket } from "lucide-react";
 import { Stars } from "../components/StarRating";
+import ThemeToggle from "../components/ThemeToggle";
 import { APP_NAME, TAGLINE } from "../lib/brand";
 
 const features = [
@@ -15,7 +16,7 @@ export default function Landing() {
     <div className="mx-auto max-w-6xl px-5 py-8">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-2 font-heading text-xl font-bold"><Ticket className="-rotate-12 text-berry" /> {APP_NAME}</div>
-        <div className="flex gap-2"><Link to="/login" className="btn-soft">Log in</Link><Link to="/signup" className="btn-primary hidden sm:inline-flex">Sign up</Link></div>
+        <div className="flex gap-2"><ThemeToggle /><Link to="/login" className="btn-soft">Log in</Link><Link to="/signup" className="btn-primary hidden sm:inline-flex">Sign up</Link></div>
       </header>
 
       <section className="grid items-center gap-10 py-14 md:grid-cols-2 md:py-20">
@@ -26,6 +27,7 @@ export default function Landing() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/signup" className="btn-primary text-lg">Start your movie diary</Link>
             <Link to="/login" className="btn-soft text-lg">I have an account</Link>
+            <Link to="/app/discover" className="btn text-lg underline">Browse movies first</Link>
           </div>
         </div>
 

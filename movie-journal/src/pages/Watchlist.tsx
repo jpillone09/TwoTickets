@@ -129,7 +129,7 @@ export default function Watchlist({ kind }: { kind: "personal" | "shared" }) {
 
       {pick && (
         <div className="sticker-card mt-4 flex items-center gap-4 !bg-butter p-4">
-          {pick.movie.poster_path && <img src={img(pick.movie.poster_path, "w185")!} alt="" className="w-16 rounded-lg border-2 border-white" />}
+          {pick.movie.poster_path && <img src={img(pick.movie.poster_path, "w185")!} alt="" className="w-16 rounded-lg border-2 border-card" />}
           <div className="flex-1">
             <p className="text-sm font-semibold">Tonight's pick</p>
             <Link to={`/app/movie/${pick.movie_id}`} className="font-heading text-xl font-bold">{pick.movie.title}</Link>
@@ -168,7 +168,7 @@ export default function Watchlist({ kind }: { kind: "personal" | "shared" }) {
           return (
             <div key={it.id} className="sticker-card flex gap-4 p-3">
               <Link to={`/app/movie/${it.movie_id}`} className="w-16 shrink-0">
-                {it.movie.poster_path && <img src={img(it.movie.poster_path, "w185")!} alt="" className="rounded-lg border-2 border-white shadow" />}
+                {it.movie.poster_path && <img src={img(it.movie.poster_path, "w185")!} alt="" className="rounded-lg border-2 border-card shadow" />}
               </Link>
               <div className="min-w-0 flex-1 space-y-2">
                 <Link to={`/app/movie/${it.movie_id}`} className="font-heading font-bold">

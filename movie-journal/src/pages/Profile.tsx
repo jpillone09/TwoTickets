@@ -39,7 +39,7 @@ function Posters({ movies, empty }: { movies: Mv[]; empty: string }) {
       {movies.map((m, i) => (
         <Link key={`${m.id}-${i}`} to={`/app/movie/${m.id}`} title={m.title} className="w-24 md:w-28">
           {m.poster_path
-            ? <img src={img(m.poster_path, "w185")!} alt={m.title} className="aspect-[2/3] rounded-xl border-4 border-white object-cover shadow-md" />
+            ? <img src={img(m.poster_path, "w185")!} alt={m.title} className="aspect-[2/3] rounded-xl border-4 border-card object-cover shadow-md" />
             : <div className="flex aspect-[2/3] items-center justify-center rounded-xl bg-secondary p-1 text-center text-xs">{m.title}</div>}
         </Link>
       ))}

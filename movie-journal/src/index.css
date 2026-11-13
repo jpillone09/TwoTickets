@@ -21,11 +21,38 @@
     --border: 335 20% 88%;
     --ring: 338 62% 59%;
     --berry: 338 62% 59%;
+    --on-berry: 0 0% 100%;
     --butter: 49 100% 85%;
+    --shadow: 338 82% 88%;
+    --dots: 338 82% 90% / 0.5;
   }
+
+  /* Dark mode: deep plum with the same strawberry accent */
+  [data-theme="dark"] {
+    --background: 338 25% 10%;
+    --foreground: 338 45% 94%;
+    --card: 338 22% 14%;
+    --primary: 338 82% 73%;
+    --primary-foreground: 338 35% 14%;
+    --secondary: 338 26% 19%;
+    --secondary-foreground: 338 45% 94%;
+    --muted: 338 20% 17%;
+    --muted-foreground: 338 15% 70%;
+    --accent: 197 35% 28%;
+    --accent-foreground: 197 50% 92%;
+    --destructive: 0 75% 65%;
+    --border: 338 15% 26%;
+    --ring: 338 85% 76%;
+    --berry: 338 85% 76%;
+    --on-berry: 338 35% 14%;
+    --butter: 45 45% 26%;
+    --shadow: 338 40% 22%;
+    --dots: 338 40% 30% / 0.3;
+  }
+
   body {
     @apply bg-background text-foreground antialiased font-body;
-    background-image: radial-gradient(hsl(338 82% 90% / 0.5) 1.5px, transparent 1.5px);
+    background-image: radial-gradient(hsl(var(--dots)) 1.5px, transparent 1.5px);
     background-size: 22px 22px;
   }
   h1, h2, h3, h4 { @apply font-heading font-bold; }
@@ -35,27 +62,17 @@
 @layer components {
   .sticker-card {
     @apply rounded-sticker border-2 border-foreground/15 bg-card;
-    box-shadow: 4px 4px 0 hsl(338 82% 88%);
+    box-shadow: 4px 4px 0 hsl(var(--shadow));
   }
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 font-heading font-bold transition;
-  }
-  .btn-primary { @apply btn bg-primary text-primary-foreground hover:bg-berry hover:text-white; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 font-heading font-bold transition; }
+  .btn-primary { @apply btn bg-primary text-primary-foreground hover:bg-berry hover:text-onberry; }
   .btn-soft { @apply btn bg-secondary text-secondary-foreground hover:bg-primary/40; }
   .btn-danger { @apply btn bg-destructive/10 text-destructive hover:bg-destructive/20; }
-  .input {
-    @apply w-full rounded-full border-2 border-border bg-white px-4 py-2.5 placeholder:text-muted-foreground;
-  }
+  .input { @apply w-full rounded-full border-2 border-border bg-card px-4 py-2.5 placeholder:text-muted-foreground; }
   .chip { @apply rounded-full bg-secondary px-3 py-1 text-sm font-semibold; }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; animation: none !important; }
-}
-
-@layer components {
   /* Cinema-ticket card with side notches */
-  .ticket { @apply relative rounded-sticker border-2 border-foreground/15 bg-card; box-shadow: 4px 4px 0 hsl(338 82% 88%); }
+  .ticket { @apply relative rounded-sticker border-2 border-foreground/15 bg-card; box-shadow: 4px 4px 0 hsl(var(--shadow)); }
   .ticket::before, .ticket::after {
     content: ""; position: absolute; top: 50%; width: 1.5rem; height: 1.5rem; transform: translateY(-50%);
     border-radius: 9999px; background: hsl(var(--background)); border: 2px solid hsl(var(--foreground) / 0.15);
@@ -69,5 +86,10 @@
   .page-in { animation: pageIn .35s ease both; }
   .poster-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); }
 }
+
 @keyframes shimmer { to { background-position: -200% 0; } }
 @keyframes pageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

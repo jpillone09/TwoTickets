@@ -88,7 +88,7 @@ export default function ReviewCard({ review, showMovie = false, onChanged }: {
     <article className="sticker-card flex gap-4 p-4">
       {showMovie && (
         <Link to={`/app/movie/${review.movie_id}`} className="w-20 shrink-0">
-          {poster && <img src={poster} alt="" className="rounded-lg border-2 border-white shadow" />}
+          {poster && <img src={poster} alt="" className="rounded-lg border-2 border-card shadow" />}
         </Link>
       )}
       <div className="min-w-0 flex-1">

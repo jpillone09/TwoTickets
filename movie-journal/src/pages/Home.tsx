@@ -20,9 +20,9 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       const [d, r, w, p] = await Promise.all([
-        supabase.from("diary_entries").select("id,user_id,created_at,watched_together,movie:movies(id,title,poster_path),user:profiles(display_name)").order("created_at", { ascending: false }).limit(10),
-        supabase.from("reviews").select("id,user_id,created_at,rating,body,movie:movies(id,title,poster_path),user:profiles(display_name)").order("created_at", { ascending: false }).limit(10),
-        supabase.from("watchlist_movies").select("id,added_by,added_at,watchlist:watchlists(kind),movie:movies(id,title,poster_path),user:profiles(display_name)").order("added_at", { ascending: false }).limit(10),
+        supabase.from("diary_entries").select("id,user_id,created_at,watched_together,movie:movies(id,title,poster_path),user:profiles!user_id(display_name)").order("created_at", { ascending: false }).limit(10),
+        supabase.from("reviews").select("id,user_id,created_at,rating,body,movie:movies(id,title,poster_path),user:profiles!user_id(display_name)").order("created_at", { ascending: false }).limit(10),
+        supabase.from("watchlist_movies").select("id,added_by,added_at,watchlist:watchlists(kind),movie:movies(id,title,poster_path),user:profiles!added_by(display_name)").order("added_at", { ascending: false }).limit(10),
         supabase.from("recommendations").select("id", { count: "exact", head: true }).eq("recipient_id", uid).eq("status", "pending"),
       ]);
       type Any = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -94,7 +94,7 @@ export default function Home() {
           <div className="space-y-2">
             {feed.map((a) => (
               <Link key={a.key} to={`/app/movie/${a.movie.id}`} className="sticker-card flex items-center gap-3 p-3 transition hover:-translate-y-0.5">
-                {a.movie.poster_path && <img src={img(a.movie.poster_path, "w185")!} alt="" className="w-10 rounded-md border-2 border-white" />}
+                {a.movie.poster_path && <img src={img(a.movie.poster_path, "w185")!} alt="" className="w-10 rounded-md border-2 border-card" />}
                 <span className="flex-1"><b className={a.uid === uid ? "text-berry" : ""}>{a.who}</b> {a.what} <b>{a.movie.title}</b></span>
                 <span className="text-xs text-muted-foreground">{timeAgo(a.at)}</span>
               </Link>

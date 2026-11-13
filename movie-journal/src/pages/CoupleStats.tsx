@@ -79,7 +79,7 @@ export default function CoupleStats() {
           <ol className="space-y-2">
             {data.best.map((b) => (
               <li key={b.id}><Link to={`/app/movie/${b.id}`} className="flex items-center gap-3">
-                {b.poster && <img src={img(b.poster, "w185")!} alt="" className="w-10 rounded-md border-2 border-white" />}
+                {b.poster && <img src={img(b.poster, "w185")!} alt="" className="w-10 rounded-md border-2 border-card" />}
                 <span className="flex-1 font-semibold">{b.title}</span><Stars value={b.avg} size={16} /><span className="w-10 text-right text-sm">{b.avg.toFixed(1)}</span>
               </Link></li>
             ))}

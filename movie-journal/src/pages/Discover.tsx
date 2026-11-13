@@ -4,6 +4,8 @@ import { Check, ChevronLeft, ChevronRight, Dices, Plus, Search, Star, X } from "
 import MovieCard from "../components/MovieCard";
 import TmdbCredit from "../components/TmdbCredit";
 import { useMyWatchlist } from "../lib/WatchlistContext";
+import { useAuth } from "../auth/AuthProvider";
+import { useRequireAuth } from "../components/AuthPrompt";
 import { img, tmdb, yearOf, type Genre, type MovieSummary, type Page } from "../lib/tmdb";
 
 const TABS = [
@@ -37,6 +39,8 @@ function Hero({ movies }: { movies: MovieSummary[] }) {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   const wl = useMyWatchlist();
+  const { session } = useAuth();
+  const requireAuth = useRequireAuth();
 
   useEffect(() => {
     if (paused || movies.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -58,7 +62,7 @@ function Hero({ movies }: { movies: MovieSummary[] }) {
       {bg && <img key={m.id} src={bg} alt="" className="page-in absolute inset-0 h-full w-full object-cover" />}
       <div className="absolute inset-0 bg-gradient-to-t from-[#3b2b33]/95 via-[#3b2b33]/55 to-transparent md:bg-gradient-to-r md:from-[#3b2b33]/95 md:via-[#3b2b33]/60 md:to-transparent" />
       <div className="relative flex w-full items-end gap-6 p-5 md:p-8">
-        {poster && <img src={poster} alt="" className="hidden w-36 shrink-0 rounded-xl border-4 border-white shadow-xl lg:block" />}
+        {poster && <img src={poster} alt="" className="hidden w-36 shrink-0 rounded-xl border-4 border-card shadow-xl lg:block" />}
         <div className="max-w-xl">
           <p className="mb-2 flex flex-wrap items-center gap-2 text-sm font-semibold">
             <span className="rounded-full bg-primary px-3 py-1 text-primary-foreground">Trending now</span>
@@ -69,8 +73,8 @@ function Hero({ movies }: { movies: MovieSummary[] }) {
           {m.overview && <p className="mt-2 line-clamp-2 text-white/85 md:line-clamp-3">{m.overview}</p>}
           <div className="mt-4 flex flex-wrap gap-2">
             <Link to={`/app/movie/${m.id}`} className="btn-primary">View details</Link>
-            {wl.ready && (
-              <button className="btn bg-white/90 text-foreground hover:bg-white" onClick={() => wl.toggle(m.id)} disabled={wl.busy === m.id} aria-pressed={on}>
+            {(wl.ready || !session) && (
+              <button className="btn bg-card/90 text-foreground hover:bg-card" onClick={() => requireAuth("add movies to your watchlist") && wl.toggle(m.id)} disabled={wl.busy === m.id} aria-pressed={on}>
                 {on ? <Check size={18} /> : <Plus size={18} />} {on ? "On my watchlist" : "Watchlist"}
               </button>
             )}
@@ -79,8 +83,8 @@ function Hero({ movies }: { movies: MovieSummary[] }) {
       </div>
       {movies.length > 1 && (
         <>
-          <button aria-label="Previous movie" onClick={() => go(-1)} className="absolute left-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-white/80 p-2 text-foreground md:block"><ChevronLeft /></button>
-          <button aria-label="Next movie" onClick={() => go(1)} className="absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-white/80 p-2 text-foreground md:block"><ChevronRight /></button>
+          <button aria-label="Previous movie" onClick={() => go(-1)} className="absolute left-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-card/80 p-2 text-foreground md:block"><ChevronLeft /></button>
+          <button aria-label="Next movie" onClick={() => go(1)} className="absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-card/80 p-2 text-foreground md:block"><ChevronRight /></button>
           <div className="absolute right-4 top-4 flex gap-1.5">
             {movies.map((x, n) => (
               <button key={x.id} aria-label={`Show ${x.title}`} aria-current={n === i} onClick={() => setI(n)}

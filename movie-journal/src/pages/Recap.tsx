@@ -65,7 +65,7 @@ export default function Recap() {
 
       {best && (
         <div className="sticker-card flex items-center gap-4 p-6">
-          {best.movie.poster_path && <img src={img(best.movie.poster_path, "w185")!} alt="" className="w-24 rounded-xl border-4 border-white shadow" />}
+          {best.movie.poster_path && <img src={img(best.movie.poster_path, "w185")!} alt="" className="w-24 rounded-xl border-4 border-card shadow" />}
           <div><p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Your top-rated movie</p>
             <Link to={`/app/movie/${best.movie_id}`} className="font-heading text-2xl font-bold text-berry">{best.movie.title}</Link>
             <p className="text-muted-foreground">{best.rating} ★</p></div>

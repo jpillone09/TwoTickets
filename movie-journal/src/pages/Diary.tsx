@@ -91,7 +91,7 @@ export default function Diary() {
             <div key={e.id} className="sticker-card flex items-center gap-4 p-3">
               <span className="w-16 shrink-0 text-center text-sm font-bold text-berry">{fmtDate(e.watched_on)}</span>
               <Link to={`/app/movie/${e.movie.id}`} className="w-12 shrink-0">
-                {e.movie.poster_path && <img src={img(e.movie.poster_path, "w185")!} alt="" className="rounded-md border-2 border-white shadow" />}
+                {e.movie.poster_path && <img src={img(e.movie.poster_path, "w185")!} alt="" className="rounded-md border-2 border-card shadow" />}
               </Link>
               <div className="min-w-0 flex-1">
                 <Link to={`/app/movie/${e.movie.id}`} className="font-heading font-bold">
@@ -112,7 +112,7 @@ export default function Diary() {
           {shown.map((e) => (
             <Link key={e.id} to={`/app/movie/${e.movie.id}`} className="w-32">
               {e.movie.poster_path
-                ? <img src={img(e.movie.poster_path)!} alt={e.movie.title} className="aspect-[2/3] rounded-xl border-4 border-white object-cover shadow-md" />
+                ? <img src={img(e.movie.poster_path)!} alt={e.movie.title} className="aspect-[2/3] rounded-xl border-4 border-card object-cover shadow-md" />
                 : <div className="flex aspect-[2/3] items-center justify-center rounded-xl bg-secondary p-2 text-center text-sm">{e.movie.title}</div>}
               <div className="mt-1"><Stars value={e.rating} size={14} /></div>
               <p className="text-xs text-muted-foreground">{fmtDate(e.watched_on)}</p>

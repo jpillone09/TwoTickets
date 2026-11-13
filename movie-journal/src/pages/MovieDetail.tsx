@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Clock, Star, UserRound } from "lucide-react";
+import { ArrowLeft, Clock, ListVideo, Star, UserRound } from "lucide-react";
 import MovieCard from "../components/MovieCard";
 import TmdbCredit from "../components/TmdbCredit";
 import LogForm from "../components/LogForm";
 import SaveButtons from "../components/SaveButtons";
 import MovieActions from "../components/MovieActions";
 import ReviewCard from "../components/ReviewCard";
+import { useRequireAuth } from "../components/AuthPrompt";
 import { useAuth } from "../auth/AuthProvider";
 import { supabase } from "../lib/supabase";
 import { img, tmdb, yearOf, type Movie, type MovieSummary, type Page } from "../lib/tmdb";
@@ -15,7 +16,9 @@ import type { ReviewRow } from "../lib/types";
 export default function MovieDetail() {
   const { id } = useParams();
   const { session, profile, partner } = useAuth();
-  const uid = session!.user.id;
+  const requireAuth = useRequireAuth();
+  const uid = session?.user.id;
+  const guest = !session;
   const [movie, setMovie] = useState<Movie | null>(null);
   const [similar, setSimilar] = useState<MovieSummary[]>([]);
   const [error, setError] = useState("");
@@ -31,7 +34,7 @@ export default function MovieDetail() {
   }, [id]);
 
   const loadMine = useCallback(async () => {
-    if (!id) return;
+    if (!id || !uid) { setReviews([]); setViews(0); return; }
     const [r, d] = await Promise.all([
       supabase.from("reviews").select("*, author:profiles!user_id(id,display_name,username)").eq("movie_id", Number(id)).order("created_at"),
       supabase.from("diary_entries").select("id", { count: "exact", head: true }).eq("movie_id", Number(id)).eq("user_id", uid),
@@ -63,7 +66,7 @@ export default function MovieDetail() {
           <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
         </div>
         <div className="flex flex-col gap-6 p-6 md:flex-row">
-          {poster && <img src={poster} alt={`${movie.title} poster`} className="-mt-28 w-40 shrink-0 self-start rounded-xl border-4 border-white shadow-xl md:-mt-40 md:w-56" />}
+          {poster && <img src={poster} alt={`${movie.title} poster`} className="-mt-28 w-40 shrink-0 self-start rounded-xl border-4 border-card shadow-xl md:-mt-40 md:w-56" />}
           <div className="min-w-0 flex-1">
             <h1 className="text-3xl md:text-4xl">{movie.title} <span className="font-body text-xl font-normal text-muted-foreground">{yearOf(movie.release_date)}</span></h1>
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
@@ -75,16 +78,29 @@ export default function MovieDetail() {
             <p className="mt-4 leading-relaxed">{movie.overview ?? "No synopsis available."}</p>
 
             <div className="mt-5 rounded-sticker bg-secondary/60 p-4">
-              <div className="flex flex-wrap items-center gap-3">
-                <button className="btn-primary" onClick={() => setShowForm((v) => !v)}>
-                  {showForm ? "Close" : myReview || views > 0 ? "Log again / edit review" : "Log a viewing"}
-                </button>
-                {views > 0 && <span className="text-sm text-muted-foreground">You've logged this {views} time{views > 1 ? "s" : ""}.</span>}
-              </div>
-              <SaveButtons movieId={movie.id} paired={!!profile?.couple_id} />
-              <MovieActions movie={{ id: movie.id, title: movie.title }} paired={!!partner} />
+              {guest ? (
+                <>
+                  <p className="mb-3 text-sm text-muted-foreground">Create a free account to log, rate and save this movie.</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button className="btn-primary" onClick={() => requireAuth("log this movie")}>Log a viewing</button>
+                    <button className="btn-soft" onClick={() => requireAuth("add movies to your watchlist")}><ListVideo size={18} /> My watchlist</button>
+                    <button className="btn-soft" onClick={() => requireAuth("save your favorite movies")}><Star size={18} /> Add to favorites</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button className="btn-primary" onClick={() => setShowForm((v) => !v)}>
+                      {showForm ? "Close" : myReview || views > 0 ? "Log again / edit review" : "Log a viewing"}
+                    </button>
+                    {views > 0 && <span className="text-sm text-muted-foreground">You've logged this {views} time{views > 1 ? "s" : ""}.</span>}
+                  </div>
+                  <SaveButtons movieId={movie.id} paired={!!profile?.couple_id} />
+                  <MovieActions movie={{ id: movie.id, title: movie.title }} paired={!!partner} />
+                </>
+              )}
             </div>
-            {showForm && (
+            {!guest && showForm && (
               <LogForm movie={{ id: movie.id, title: movie.title }} existing={myReview} priorViews={views}
                 paired={!!profile?.couple_id} onSaved={() => { setShowForm(false); loadMine(); }} />
             )}
@@ -95,27 +111,36 @@ export default function MovieDetail() {
       <section>
         <h2 className="mb-3 text-xl">Ratings &amp; reviews</h2>
         {loadError && <p role="alert" className="mb-3 font-semibold text-destructive">Couldn't load reviews: {loadError}</p>}
-        <div className={`grid gap-4 ${profile?.couple_id ? "md:grid-cols-2" : ""}`}>
-          <div>
-            <p className="mb-2 text-sm font-bold uppercase tracking-wide text-berry">You</p>
-            {myReview ? <ReviewCard review={myReview} onChanged={loadMine} /> : (
-              <div className="sticker-card p-5 text-muted-foreground">
-                You haven't rated this yet. <button className="font-bold text-berry underline" onClick={() => setShowForm(true)}>Rate it</button>
-              </div>
-            )}
+        {guest ? (
+          <div className="sticker-card p-5 text-muted-foreground">
+            Log in to rate this movie and see your partner's rating here.{" "}
+            <button className="font-bold text-berry underline" onClick={() => requireAuth("rate movies")}>Join free</button>
           </div>
-          {profile?.couple_id && (
-            <div>
-              <p className="mb-2 text-sm font-bold uppercase tracking-wide text-berry">{partner ? partnerName : "Your partner"}</p>
-              {partnerReview ? <ReviewCard review={partnerReview} onChanged={loadMine} /> : (
-                <div className="sticker-card p-5 text-muted-foreground">
-                  {partner ? `${partnerName} hasn't rated this yet.` : "Your partner hasn't joined yet. Once they do, their rating will show here."}
+        ) : (
+          <>
+            <div className={`grid gap-4 ${profile?.couple_id ? "md:grid-cols-2" : ""}`}>
+              <div>
+                <p className="mb-2 text-sm font-bold uppercase tracking-wide text-berry">You</p>
+                {myReview ? <ReviewCard review={myReview} onChanged={loadMine} /> : (
+                  <div className="sticker-card p-5 text-muted-foreground">
+                    You haven't rated this yet. <button className="font-bold text-berry underline" onClick={() => setShowForm(true)}>Rate it</button>
+                  </div>
+                )}
+              </div>
+              {profile?.couple_id && (
+                <div>
+                  <p className="mb-2 text-sm font-bold uppercase tracking-wide text-berry">{partner ? partnerName : "Your partner"}</p>
+                  {partnerReview ? <ReviewCard review={partnerReview} onChanged={loadMine} /> : (
+                    <div className="sticker-card p-5 text-muted-foreground">
+                      {partner ? `${partnerName} hasn't rated this yet.` : "Your partner hasn't joined yet. Once they do, their rating will show here."}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
-        {!profile?.couple_id && <p className="mt-3 text-sm text-muted-foreground"><Link to="/onboarding" className="font-bold text-berry underline">Pair up</Link> to see your partner's ratings here.</p>}
+            {!profile?.couple_id && <p className="mt-3 text-sm text-muted-foreground"><Link to="/onboarding" className="font-bold text-berry underline">Pair up</Link> to see your partner's ratings here.</p>}
+          </>
+        )}
       </section>
 
       {movie.cast_members.length > 0 && (
@@ -126,7 +151,7 @@ export default function MovieDetail() {
               const p = img(c.profile_path, "w185");
               return (
                 <div key={c.id} className="text-center">
-                  {p ? <img src={p} alt={c.name} loading="lazy" className="mx-auto h-24 w-24 rounded-full border-4 border-white object-cover shadow" />
+                  {p ? <img src={p} alt={c.name} loading="lazy" className="mx-auto h-24 w-24 rounded-full border-4 border-card object-cover shadow" />
                     : <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-secondary"><UserRound className="text-primary" /></div>}
                   <p className="mt-2 text-sm font-bold leading-tight">{c.name}</p>
                   <p className="text-xs text-muted-foreground">{c.character}</p>

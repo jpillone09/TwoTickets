@@ -23,6 +23,7 @@ export default {
         border: v("border"),
         ring: v("ring"),
         berry: v("berry"),
+        onberry: v("on-berry"),
         butter: v("butter"),
       },
       borderRadius: { sticker: "1.25rem" },
